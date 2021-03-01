@@ -19,17 +19,15 @@ Using NPM
 ```
 Using Yarn
 ```js
-   yarn install mono-node
+   yarn add mono-node
 ```
 
 <br />
 
 ## Import the module
 ```js
-import client from "mono-node";
+const client = require("mono-node");
 ```
-
-
 
 
 ## Features
@@ -271,5 +269,7 @@ client.unlinkAccount(secretKey, {accountId: accountId}, (err, results) => {
 });
 
 ```
+
+## License
 
 The MIT License (MIT). Please see <a href="https://github.com/withmono/mono-node/blob/main/LICENSE.md">License File</a> for more information.
