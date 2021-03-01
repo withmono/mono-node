@@ -272,4 +272,4 @@ client.unlinkAccount(secretKey, {accountId: accountId}, (err, results) => {
 
 ```
 
-The MIT License (MIT). Please see <a href="https://github.com/digikraaft/mono-php/blob/master/LICENSE.md">License File</a> for more information.
+The MIT License (MIT). Please see <a href="https://github.com/withmono/mono-node/blob/main/LICENSE.md">License File</a> for more information.
