@@ -1,11 +1,16 @@
 {
   "name": "mono-node",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "",
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/withmono/mono-node.git"
+  },
+  "homepage": "https://github.com/withmono/mono-node",
   "keywords": [],
   "author": "",
   "license": "ISC",
