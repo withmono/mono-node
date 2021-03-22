@@ -2,8 +2,7 @@ Convenient Node.js wrapper to the Mono API
 
 
 # Mono Node
-Mono-Node is a node.js wrapper for <a href="https://mono.co"> Mono </a>  
-For complete information about the API, head to the <a href="https://docs.mono.co/reference">docs</a>.
+Mono-Node is a node.js wrapper for <a href="https://mono.co"> Mono </a>
 <br /><br />
 
 ## Getting Started
@@ -27,14 +26,7 @@ Using Yarn
 
 ## Import the module
 ```js
-const {Mono} = require("mono-node");
-```
-
-## Set Secret Key
-```js
-const monoClient = new Mono({
-    secretKey: "live_sk_random",
-});
+const client = require("mono-node");
 ```
 
 
@@ -62,14 +54,11 @@ const monoClient = new Mono({
 This resource allows you to check the available balance in your Mono wallet
 
 ```js
-monoClient.user.walletBalance((err, results) => {
+client.getWalletBalance(secretKey, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results.balance;
 });
 ```
 
@@ -79,14 +68,11 @@ monoClient.user.walletBalance((err, results) => {
 This resource returns the account details with the financial institution.
 
 ```js
-monoClient.account.getAccountInformation({accountId: '604f8efd4dbec95bd65a1583'}, (err, results) => {
+client.getAccountInformation(secretKey, {accountId: accountId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results;
 });
 ```
 
@@ -95,14 +81,11 @@ monoClient.account.getAccountInformation({accountId: '604f8efd4dbec95bd65a1583'}
 ### - Get Account Id from token
 This resource returns the account id (that identifies the authenticated account) after successful enrolment on the Mono connect widget.
 ```js
-monoClient.auth.getAccountId({code: 'code_IjyfZzzMML1ZXc8tTpYG'}, (err, results) => {
+client.getAccountId(secretKey, {code: code}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results.id;
 });
 
 ```
@@ -112,14 +95,11 @@ monoClient.auth.getAccountId({code: 'code_IjyfZzzMML1ZXc8tTpYG'}, (err, results)
 This resource returns the bank statement of the connected financial account in JSON.  
 You can query 1-12 months bank statement in one single call.
 ```js
-monoClient.account.getAccountStatement({accountId: '604f8efd4dbec95bd65a1583', output: 'json'}, (err, results) => {
+client.getAccountStatement(secretKey, {accountId: accountId,output:"json",period:"last2months"}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results;
 });
 
 ```
@@ -128,14 +108,11 @@ monoClient.account.getAccountStatement({accountId: '604f8efd4dbec95bd65a1583', o
 This resource returns the bank statement of the connected financial account in PDF.  
 You can query 1-12 months bank statement in one single call.
 ```js
-monoClient.account.getAccountStatement({accountId: '604f8efd4dbec95bd65a1583', output: 'pdf'}, (err, results) => {
+client.getAccountStatement(secretKey, {accountId: accountId,output:"pdf",period:"last2months"}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results.path;
 });
 
 ```
@@ -143,14 +120,11 @@ monoClient.account.getAccountStatement({accountId: '604f8efd4dbec95bd65a1583', o
 ### - Poll Account Statement in PDF
 With this resource, you set the output as PDF, and you can use this endpoint to poll the status
 ```js
-monoClient.account.pollPdfAccountStatementStatus({accountId: '604f8efd4dbec95bd65a1583', jobId: 'QEP34KCSynTZgYXQr4e1'}, (err, results) => {
+client.pollAccountStatementPdf(secretKey, {accountId: accountId, jobId:jobId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results.path;
 });
 
 ```
@@ -159,113 +133,113 @@ monoClient.account.pollPdfAccountStatementStatus({accountId: '604f8efd4dbec95bd6
 This resource returns the known transactions on the account.
 
 ```js
-monoClient.account.getAccountTransactions({accountId: '604f8efd4dbec95bd65a1583', type: 'credit'}, (err, results) => {
+client.getAccountTransactions(secretKey, {
+    accountId: accountId,
+    start:'01-10-2020',
+    end:'07-10-2020',
+    narration: 'Uber transactions',
+    type:'debit',
+    paginate: false,
+    limit: 3
+}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results.data;
+    const total = results.paging.total;
+    const page = results.paging.page;
+    const previous = results.paging.previous;
+    const next = results.paging.next;
 });
+
 ```
 
 ### - Get Customer's Credits
 This resource returns the historical credits on the account
 ```js
-monoClient.account.getCustomerCredits({accountId: '604f8efd4dbec95bd65a1583'}, (err, results) => {
+client.getCustomerCredit(secretKey, {accountId: accountId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results.total;
+    const history = results.history;
 });
+
 ```
 
 ### - Get Customer's Debits
 This resource returns the historical debits on the account
 ```js
-monoClient.account.getCustomerDebits({accountId: '604f8efd4dbec95bd65a1583'}, (err, results) => {
+client.getCustomerDebit(secretKey, {accountId: accountId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results.total;
+    const history = results.history;
 });
+
 ```
 
 ### - Get Income Information
 This resource will return income information on the account.
 ```js
-monoClient.account.getIncome({accountId: '604f8efd4dbec95bd65a1583'}, (err, results) => {
+client.getIncomeInformation(secretKey, {accountId: accountId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const type = results.type;
+    const amount = results.amount;
+    const confidence = results.confidence;
 });
+
 ```
 
 
 ### - Get Account Identity
 This resource returns a high level overview of an account identity data.
 ```js
-monoClient.account.getIdentity({accountId: '604f8efd4dbec95bd65a1583'}, (err, results) => {
+client.getIdentity(secretKey, {accountId: accountId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results;
 });
+
 ```
 
 ### - Synchronise Data
 This resource attempts to Sync data manually.
 ```js
-monoClient.account.syncDataManually({accountId: '604f8efd4dbec95bd65a1583'}, (err, results) => {
+client.syncData(secretKey, {accountId: accountId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const status = results.status;
+    const code = results.code;
 });
+
 ```
 
 ### - Get Re-auth Code. 
 This resource returns a Re-auth code which is a mono generated code for the account you want to re-authenticate,
 ```js
-monoClient.account.reauthCode({accountId: '604f8efd4dbec95bd65a1583'}, (err, results) => {
+client.getReauthCode(secretKey, {accountId: accountId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const token = results.token;
 });
+
 ```
 
 ### - Get Financial Institutions
 This resource returns the available institutions on Mono
 ```js
-monoClient.misc.institutions((err, results) => {
+client.getInstitutions(secretKey, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results;
 });
 
 ```
@@ -274,30 +248,26 @@ monoClient.misc.institutions((err, results) => {
 ### - BVN Lookup
 This resource looks up BVN.
 ```js
-monoClient.misc.bvnLookup({bvn: '22354058195'}, (err, results) => {
+client.bvnLookup(secretKey, {bvn: '1234567890'}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results;
 });
+
 ```
 
 
 ### - Unlink Account
 This resource provides your customers with the option to unlink their financial account(s)
 ```js
-monoClient.account.unlinkAccount({accountId: '604f8efd4dbec95bd65a1583'}, (err, results) => {
+client.unlinkAccount(secretKey, {accountId: accountId}, (err, results) => {
     // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+    if (err) console.log(err);
+
+    const data = results;
 });
+
 ```
 
 ## License
