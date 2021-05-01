@@ -62,7 +62,7 @@ export class Account extends BaseLib {
         query += (data.end ? `end=${data.end}&` : '');
         query += (data.narration ? `narration=${data.narration}&` : '');
         query += (data.type ? `type=${data.type}&` : '');
-        query += (data.paginate ? `paginate=${data.paginate}&` : '');
+        query += ((!data.paginate && data.paginate === false) ? `paginate=${false}&` : `paginate=${true}&`);
         query += (data.limit ? `limit=${data.limit}&` : '');
         
         return this.sendRequest( this.axios.get(`${this.path}/${data.accountId}/transactions${query}` ), callback).catch(err => {
