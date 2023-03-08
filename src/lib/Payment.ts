@@ -17,7 +17,7 @@ interface VerifyPaymentOption {
 }
 
 export class Payment extends BaseLib {
-  protected readonly path = '/payments/';
+  protected readonly path = 'v1/payments/';
 
   constructor(protected readonly axios: AxiosInstance) {
     super(axios);
@@ -25,7 +25,7 @@ export class Payment extends BaseLib {
 
   async initiate(data: PaymentInitializationOptions, callback?: any) {
     return this.sendRequest(
-      this.axios.post(`${this.path}/initiate`),
+      this.axios.post(`${this.path}/initiate`, data),
       callback
     ).catch((err) => {
       // err
@@ -34,7 +34,7 @@ export class Payment extends BaseLib {
 
   async verify(data: VerifyPaymentOption, callback?: any) {
     return this.sendRequest(
-      this.axios.get(`${this.path}/verify/${data.reference}`),
+      this.axios.post(`${this.path}/verify`, data),
       callback
     ).catch((err) => {
       // err
