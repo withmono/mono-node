@@ -182,9 +182,9 @@ monoClient.misc.institutions(callback);
 
 ```
 
-### <a name="create-payments"></a>create payment link
+### <a name="create-payment"></a>create payment link
 This resource initializes a direct pay session.
-```tsc
+```ts
 
   client.payment.initiate(
     {
@@ -206,7 +206,7 @@ This resource initializes a direct pay session.
 
 ### <a name="verify-payment"></a>verify payment
 This resource verifies a payment.
-```tsc
+```ts
 
   client.payment.verify(
     { reference: '2498y58y59' },
