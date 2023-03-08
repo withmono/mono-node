@@ -1,4 +1,4 @@
-import { AxiosInstance } from 'axios';
+import { AxiosInstance } from "axios";
 import { BaseLib } from "../base-lib/BaseLib";
 interface AccountId {
     accountId: string;

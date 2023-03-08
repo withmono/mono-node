@@ -69,6 +69,8 @@ monoClient.user.walletBalance((err, results) => {
 - [Sync Data](#sync)
 - [Re-auth Code](#reauth)
 - [Institutions](#institutions)
+- [Create Payment](#create-payment)
+- [Verify payment](#verify-payment)
 
 # Implementation
 
@@ -108,7 +110,7 @@ monoClient.account.getAccountInformation({accountId: String}, callback);
 
 
 ### <a name="statement"></a>Get Account Statement in JSON
-This resource returns the bank statement of the connected financial account in JSON.  
+This resource returns the bank statement of the connected financial account in JSON.
 You can query 1-12 months bank statement in one single call.
 ```js
 monoClient.account.getAccountStatement({accountId: String, output: 'json'}, callback);
@@ -116,7 +118,7 @@ monoClient.account.getAccountStatement({accountId: String, output: 'json'}, call
 ```
 
 ### Get Account Statement in PDF
-This resource returns the bank statement of the connected financial account in PDF.  
+This resource returns the bank statement of the connected financial account in PDF.
 You can query 1-12 months bank statement in one single call.
 ```js
 monoClient.account.getAccountStatement({accountId: String, output: 'pdf'}, callback);
@@ -177,6 +179,41 @@ monoClient.account.reauthCode({accountId: String}, callback);
 This resource returns the available institutions on Mono
 ```js
 monoClient.misc.institutions(callback);
+
+```
+
+### <a name="create-payment"></a>create payment link
+This resource initializes a direct pay session.
+```ts
+
+  client.payment.initiate(
+    {
+      reference: '2498y58y59',
+      amount: 100000,
+      description: 'Test payment',
+      meta: {
+        name: 'Lanre',
+      },
+      type: 'onetime-debit',
+    },
+    (err: any, results: any) => {
+      console.log(err);
+      console.log(results);
+    }
+  );
+
+```
+
+### <a name="verify-payment"></a>verify payment
+This resource verifies a payment.
+```ts
+
+  client.payment.verify(
+    { reference: '2498y58y59' },
+    (err: any, results: any) => {
+      console.log(err, results);
+    }
+  );
 
 ```
 
