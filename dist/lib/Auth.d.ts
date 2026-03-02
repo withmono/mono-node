@@ -10,3 +10,4 @@ export declare class Auth extends BaseLib {
     getAccountId(data: AccountCodeOptions, callback?: any): Promise<any>;
 }
 export {};
+//# sourceMappingURL=Auth.d.ts.map

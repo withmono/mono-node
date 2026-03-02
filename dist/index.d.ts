@@ -1,14 +1,6 @@
-import { Auth } from './lib/Auth';
-import { Account } from './lib/Account';
-import { Misc } from './lib/Misc';
-import { User } from './lib/User';
-export declare class Mono {
-    apiURL: string;
-    auth: Auth;
-    account: Account;
-    misc: Misc;
-    user: User;
-    constructor(options: {
-        secretKey: string;
-    });
-}
+/**
+ * Entry point for the Mono Node.js SDK.
+ * Re-exports the Mono class and types from the main implementation.
+ */
+export { default, default as Mono, Customer, BankData, TelcoData, OneTimePayments, RecurringPayments, MoneyOperations, WhatsAppPayment, Disburse, Lookup, BvnLookup, CacLookup, Prove, Misc } from "./_index";
+//# sourceMappingURL=index.d.ts.map

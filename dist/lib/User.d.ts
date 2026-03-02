@@ -4,5 +4,6 @@ export declare class User extends BaseLib {
     protected readonly axios: AxiosInstance;
     protected readonly path: string;
     constructor(axios: AxiosInstance);
-    walletBalance(callback?: any): Promise<any>;
+    getWalletBalance(callback: any): Promise<any>;
 }
+//# sourceMappingURL=User.d.ts.map
