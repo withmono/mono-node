@@ -1,27 +1,17 @@
-import {AxiosInstance, AxiosError} from 'axios'
-import {BaseLib} from "../base-lib/BaseLib";
+import { AxiosInstance } from "axios";
+import { BaseLib } from "../base-lib/BaseLib";
 
-interface BvnOptions {
-    bvn: string
-}
-
+/**
+ * Miscellaneous API – bank coverage (institutions).
+ * @see https://docs.mono.co/api/miscellaneous/bank-coverage
+ */
 export class Misc extends BaseLib {
-    protected readonly path: string;
+  constructor(protected readonly axios: AxiosInstance) {
+    super(axios);
+  }
 
-    constructor(protected readonly axios: AxiosInstance) {
-        super(axios);
-        this.path = ''
-    }
-
-    async bvnLookup(data: BvnOptions, callback?: any) {
-        return this.sendRequest(this.axios.post('/v1/lookup/bvn/identity', data), callback).catch(err => {
-            // console.log(err);
-        })
-    }
-
-    async institutions(callback?: any) {
-        return this.sendRequest(this.axios.get('/coverage'), callback).catch(err => {
-            // console.log(err);
-        })
-    }
+  /** Bank coverage – supported institutions and product scopes. GET /v3/institutions */
+  bankCoverage(params?: Record<string, string>, callback?: (err: unknown, data: unknown) => void) {
+    return this.sendRequest(this.axios.get("/v3/institutions", { params }), callback);
+  }
 }

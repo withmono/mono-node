@@ -1,303 +1,404 @@
-# Mono Node.js Library
+# Mono Node
 
-The Mono Node library provides convenient access to the Mono API from
-applications written in server-side JavaScript.
+Node.js wrapper for the [Mono API](https://mono.co). Use it to integrate **Customer**, **Connect** (bank & telco data), **Payments** (one-time, recurring, disbursements, WhatsApp), **Lookup** (BVN, CAC, NIN, etc.), **Prove** (KYC), and **Misc** (e.g. bank coverage) in your application.
 
-For connecting customer accounts in the browser or an app, use the [Mono Connect Widget](https://github.com/withmono/connect.js).
+- [Mono Dashboard](https://app.mono.co)
+- [API Reference](https://docs.mono.co/api)
+- [Get API keys](https://app.mono.co/apps)
 
-## Documentation
-
-For complete information about the API, head to the [docs](https://docs.mono.co/reference/documentation-intro).
-
-
-## Getting Started
-
-1. Register on the [Mono](https://app.withmono.com/dashboard) website and get your public and secret keys.
-2. Setup your [Mono Connect Widget](https://docs.mono.co/docs/intro-to-mono-connect-widget) with your Mono public key.
+---
 
 ## Installation
 
-Install the package with:
+```bash
+npm install mono-node
+```
 
-```sh
-npm install mono-node --save
-# or
+or with Yarn:
+
+```bash
 yarn add mono-node
 ```
 
+---
+
+## Quick start (recommended)
+
+Use the **Mono** class with your secret key. All methods return a **Promise** and accept an optional **callback**.
+
+```js
+// If the package main exports the Mono class:
+const Mono = require("mono-node").default;
+// or: import Mono from "mono-node";
+
+// If your project uses the TypeScript source or a custom build:
+// const Mono = require("./src/_index").default;
+// import Mono from "./src/_index";
+
+const mono = new Mono(process.env.MONO_SECRET_KEY);
+
+// Create individual customer (POST /v2/customers).
+const customer = await mono.customer.create({
+  first_name: "Samuel",
+  last_name: "Olamide",
+  email: "samuel@example.com",
+  phone: "08012345678",
+  address: "Lagos, Nigeria",
+  type: "individual",
+  identity: { type: "bvn", number: "22123456789" },
+});
+
+// Retrieve customer by ID (GET /v2/customers/:id) – optional callback style.
+mono.customer.retrieve(customer.data.id, (err, data) => {
+  if (err) return console.error(err);
+  console.log(data);
+});
+```
+
+---
+
+## API overview
+
+The SDK is grouped to match the [Mono API](https://docs.mono.co/api):
+
+| Group | Access | Description |
+|-------|--------|-------------|
+| **Customer** | `mono.customer` | Create (individual/business), retrieve, list, update, delete; customer transactions; linked accounts |
+| **Connect** | `mono.connect.bankData` | Bank data: account linking, token exchange, accounts, statements, transactions, enrichment, etc. |
+| **Connect** | `mono.connect.telcoData` | Telco data: auth, account details, balances, transactions, identity |
+| **Payments** | `mono.payments.oneTime` | One-time payments: initiate, verify, fetch all |
+| **Payments** | `mono.payments.recurring` | Mandates and mandate accounts (balance, debit, retrieve debits) |
+| **Payments** | `mono.payments.moneyOperations` | Payouts, refunds, sub-accounts |
+| **Payments** | `mono.payments.whatsappPayment` | WhatsApp: users, beneficiaries, fund requests, payments |
+| **Payments** | `mono.payments.disburse` | Disburse: source accounts, disbursements, distributions |
+| **Lookup** | `mono.lookup.general` | Bank listing, address, NIN, TIN, passport, account number, etc. |
+| **Lookup** | `mono.lookup.bvn` | BVN: initiate, verify OTP, fetch details |
+| **Lookup** | `mono.lookup.cac` | CAC: business, shareholder, PSC, directors, profile, status report |
+| **Prove** | `mono.prove` | KYC: initiate, fetch details, blacklist, whitelist, revoke |
+| **Misc** | `mono.misc` | Bank coverage (institutions) |
+
+---
+
 ## Usage
 
-The package needs to be configured with your account's `secretKey`, which is
-available in the [Mono Dashboard](https://app.withmono.com/apps).
+### Customer
 
 ```js
-
-// import the module
-const { Mono } = require("mono-node");
-
-// set the secret key
-const monoClient = new Mono({
-    secretKey: "test_sk_...",
+// Create individual customer – creates a unique individual customer (POST /v2/customers).
+await mono.customer.create({
+  first_name: "Samuel",
+  last_name: "Olamide",
+  email: "samuel@example.com",
+  phone: "08012345678",
+  address: "Lagos",
+  type: "individual",
+  identity: { type: "bvn", number: "22123456789" },
 });
 
-// get your Mono Wallet balance
-monoClient.user.walletBalance((err, results) => {
-    // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
+// Create business customer – creates a unique business customer (POST /v2/customers, type: business).
+await mono.customer.createBusiness({
+  business_name: "Acme Ltd",
+  email: "hello@acme.com",
+  phone: "08012345678",
+  address: "Lagos",
+  type: "business",
+  identity: { type: "bvn", number: "22123456789" },
 });
 
+// Retrieve customer – fetches a single customer by ID (GET /v2/customers/:id).
+const one = await mono.customer.retrieve(customerId);
+
+// List all customers – returns all customers with optional filters e.g. page, email, phone (GET /v2/customers).
+const list = await mono.customer.list({ page: "1", email: "samuel@example.com" });
+
+// Update customer – updates customer details (PATCH /v2/customers/:id).
+await mono.customer.update(customerId, { first_name: "Sam" });
+
+// Delete customer – removes a customer (DELETE /v2/customers/:id).
+await mono.customer.delete(customerId);
+
+// Get customer transactions – returns all transactions for a customer (GET /v2/customers/:id/transactions).
+const txs = await mono.customer.getTransactions(customerId, { period: "last6months" });
+
+// Get all linked accounts – returns all linked accounts (GET /v2/accounts).
+const accounts = await mono.customer.getLinkedAccounts();
 ```
 
-## Features
+### Connect (Bank Data)
 
-- [Wallet Balance](#wallet)
-- [Get Account ID from Auth Code](#account_id)
-- [Unlink Account](#unlink)
-- [Account Information](#info)
-- [Account Statement](#statement)
-- [Poll Account Statement PDF](#statement_pdf)
-- [Transactions](#transactions)
-- [Credits](#credits)
-- [Debits](#debits)
-- [Income Information](#income)
-- [Identity](#identity)
-- [Sync Data](#sync)
-- [Re-auth Code](#reauth)
-- [Institutions](#institutions)
+**Headers**
 
-# Implementation
-
-## Methods
-
-Once an instance of the client has been created you use the following methods:
-
-
-### <a name="wallet"></a>Get Wallet Balance
-This resource allows you to check the available balance in your Mono wallet
+- **Partners API:** These endpoints require the **`x-session-id`** header (Connect session ID from `createSession`): **Login**, **Commit Session**, **Reauth Login**, **Retrieve Sandbox Credentials**. The SDK accepts `sessionId` as an argument and sends it as `x-session-id`.
+- **Balance & Transactions:** You can pass an optional **`x-realtime`** (boolean) to request real-time data. See [Real-Time Data](https://docs.mono.co/docs/financial-data/realtime-data) for behaviour, response headers, and webhooks.
 
 ```js
-monoClient.user.walletBalance(callback);
-```
-
-
-
-### <a name="account_id"></a>Get Account Id from token
-This resource returns the account id (that identifies the authenticated account) after successful enrolment on the Mono Connect Widget.
-```js
-monoClient.auth.getAccountId({code: String}, callback);
-
-```
-
-### <a name="unlink"></a>Unlink Account
-This resource provides your customers with the option to unlink their financial account(s)
-```js
-monoClient.account.unlinkAccount({accountId: String}, callback);
-```
-
-### <a name="info"></a>Get Account Information
-This resource returns the account details with the financial institution.
-
-```js
-monoClient.account.getAccountInformation({accountId: String}, callback);
-```
-
-
-### <a name="statement"></a>Get Account Statement in JSON
-This resource returns the bank statement of the connected financial account in JSON.  
-You can query 1-12 months bank statement in one single call.
-```js
-monoClient.account.getAccountStatement({accountId: String, output: 'json'}, callback);
-
-```
-
-### Get Account Statement in PDF
-This resource returns the bank statement of the connected financial account in PDF.  
-You can query 1-12 months bank statement in one single call.
-```js
-monoClient.account.getAccountStatement({accountId: String, output: 'pdf'}, callback);
-
-```
-
-### <a name="statement_pdf"></a>Poll Account Statement in PDF
-With this resource, you set the output as PDF, and you can use this endpoint to poll the status
-```js
-monoClient.account.pollPdfAccountStatementStatus({accountId: String, jobId: Striing}, callback);
-
-```
-
-### <a name="transactions"></a>Get Account Transactions
-This resource returns the known transactions on the account.
-
-```js
-monoClient.account.getAccountTransactions({accountId: String, type: 'credit'}, callback);
-```
-
-### <a name="credits"></a>Get Customer's Credits
-This resource returns the historical credits on the account
-```js
-monoClient.account.getCustomerCredits({accountId: String}, callback);
-```
-
-### <a name="debits"></a>Get Customer's Debits
-This resource returns the historical debits on the account
-```js
-monoClient.account.getCustomerDebits({accountId: String}, callback);
-```
-
-### <a name="income"></a>Get Income Information
-This resource will return income information on the account.
-```js
-monoClient.account.getIncome({accountId: String}, callback);
-```
-
-### <a name="identity"></a>Get Account Identity
-This resource returns a high level overview of an account identity data.
-```js
-monoClient.account.getIdentity({accountId: String}, callback);
-```
-
-### <a name="sync"></a>Synchronise Data
-This resource attempts to Sync data manually.
-```js
-monoClient.account.syncDataManually({accountId: String}, callback);
-```
-
-### <a name="reauth"></a>Get Re-auth Code.
-This resource returns a Re-auth code which is a mono generated code for the account you want to re-authenticate,
-```js
-monoClient.account.reauthCode({accountId: String}, callback);
-```
-
-### <a name="institutions"></a>Get Financial Institutions
-This resource returns the available institutions on Mono
-```js
-monoClient.misc.institutions(callback);
-
-```
-
-
-## Callbacks
-
-All requests have callbacks of the following form:
-
-```js
-function callback(err, results) {
-    // Handle errors
-    if (err) {
-        console.log(err);
-    }
-    if (results){
-        console.log(results);
-    };
-}
-```
-
-## Error Handling
-
-The `err` argument passed to the callback is a [Mono API error](https://docs.mono.co/docs/errors).
-
-```js
-function callback(err, results) {
-  if (err != null) {
-      console.log(err)
-  }
-}
-```
-
-## Examples
-
-Exchange an auth `code` from [Mono Connect Widget](https://docs.mono.co/docs/widgets) for an `accountId` and then retrive account data:
-
-**Note:** If the meta `data_status` is still in the processing stage, you have to wait before calling the APIs below e.g **Statement**, **Transaction**, **Income** and **Identity** Endpoints. Some banks are faster than others, so it may be available instantly after authorization and some banks might take a few seconds or minutes.
-
-```js
-// code from Mono Connect Widget
-const authCode = 'RANDOM_CODE'
-
-monoClient.auth.getAccountId({code: authCode}, (err, results) => {
-  const accountId = results.id
-
-  monoClient.account.getAccountInformation({accountId: accountId}, (err, results) => {
-    console.log(results.account)
-    if(results.meta.data_status == 'AVAILABLE'){
-         console.log('Account data ready for use.')
-    }
-  });
+// Initiate account linking – starts linking a bank account; returns mono_url for the Connect widget (POST /v2/accounts/initiate).
+const link = await mono.connect.bankData.initiateAccountLinking({
+  customer: { name: "Samuel Olamide", email: "samuel@example.com" },
+  scope: "auth",
+  redirect_url: "https://yourapp.com/callback",
+  meta: { ref: "unique-ref-123" },
 });
+// Use link.data.mono_url for the Connect widget
+
+// Exchange token – exchanges the code from the Connect callback for an account ID (POST /v2/accounts/auth).
+const auth = await mono.connect.bankData.exchangeToken({ code: "code_from_callback" });
+const accountId = auth.data.id;
+
+// --- Partners API (require x-session-id = Connect session ID) ---
+// Create connect session – creates a Connect session (POST /v2/connect/session).
+const session = await mono.connect.bankData.createSession({ ... });
+const sessionId = session.data.id; // use this as x-session-id for the four endpoints below
+
+// Login – Connect login (POST /v2/connect/login). Requires sessionId.
+await mono.connect.bankData.login({ ... }, sessionId);
+
+// Commit session – commits the Connect session (POST /v2/connect/commit). Requires sessionId.
+await mono.connect.bankData.commitSession({ ... }, sessionId);
+
+// Reauth login – reauth login (POST /v2/connect/reauth/login). Requires sessionId.
+await mono.connect.bankData.reauthLogin({ ... }, sessionId);
+
+// Retrieve sandbox credentials – get sandbox credentials (POST /v2/connect/sandbox). Requires sessionId.
+const creds = await mono.connect.bankData.getSandboxCredentials(sessionId);
+
+// Get account details – returns account details, balance and data status (GET /v2/accounts/:id).
+const details = await mono.connect.bankData.getAccountDetails(accountId);
+
+// Get statement – returns bank statement for the account, 1–12 months (GET /v2/accounts/:id/statement).
+const statement = await mono.connect.bankData.getStatement(accountId, { period: "last6months" });
+
+// Get transactions – returns transactions on the account (GET /v2/accounts/:id/transactions). Optional realtime.
+const transactions = await mono.connect.bankData.getTransactions(accountId, { limit: 20 });
+const transactionsRealtime = await mono.connect.bankData.getTransactions(accountId, { limit: 20 }, { realtime: true });
+
+// Get identity – returns identity data for the account (GET /v2/accounts/:id/identity).
+const identity = await mono.connect.bankData.getIdentity(accountId);
+
+// Get balance – returns account balance (GET /v2/accounts/:id/balance). Optional realtime.
+const balance = await mono.connect.bankData.getBalance(accountId);
+const balanceRealtime = await mono.connect.bankData.getBalance(accountId, { realtime: true });
+
+// Get income – returns income information for the account (GET /v2/accounts/:id/income).
+const income = await mono.connect.bankData.getIncome(accountId);
+
+// Unlink account – unlinks the financial account (POST /v2/accounts/:id/unlink).
+await mono.connect.bankData.unlink(accountId);
 ```
 
-Get account [transactions](https://docs.mono.co/reference/transactions) for the last thirty days:
-
+### Connect (Telco Data)
 
 ```js
-const now = moment();
-const today = now.format('DD-MM-YYYY');
-const thirtyDaysAgo = now.subtract(30, 'days').format('DD-MM-YYYY');
+// Login – initiates telco auth; sends OTP to the user's phone (POST /v2/telecom/auth).
+await mono.connect.telcoData.login({ phone: "08012345678", provider: "MTN" });
 
-monoClient.account.getAccountTransactions({accountId: String, start: today, end: thirtyDaysAgo, paginate: false}, (err, results) => {
-  console.log(`You have ${results.data.length} transactions from the last thirty days.`);
-});
+// Verify OTP – verifies the OTP and completes telco authentication (POST /v2/telecom/verify).
+await mono.connect.telcoData.verifyOtp({ session_id: "...", otp: "123456" });
+
+// Get details – returns telco account details (GET /v2/accounts/:id).
+const details = await mono.connect.telcoData.getDetails(accountId);
+
+// Get balances – returns telco account balances (GET /v2/accounts/:id/balances).
+const balances = await mono.connect.telcoData.getBalances(accountId);
 ```
 
-Get [income](https://docs.mono.co/reference/income) for an account:
-
-**Note:** This is a number estimated by Mono. It is not nesecarrily 100% correct, however, a confidence interval is provided to show the estimations accuracy.
+### Payments – One-time
 
 ```js
-monoClient.account.getIncome({accountId: String}, (err, results) => {
-  console.log(`Your ${results.type} is ${results.amount}. You work at ${results.employer}`);
+// Initiate payment – creates a one-time payment and returns a payment link (POST /v2/payments/initiate).
+const payment = await mono.payments.oneTime.initiate({
+  amount: 20000, // kobo
+  type: "onetime-debit",
+  method: "account",
+  account: accountId,
+  description: "Order payment",
+  reference: "order-ref-001",
+  redirect_url: "https://yourapp.com/done",
+  customer: { name: "Samuel", email: "samuel@example.com", phone: "08012345678" },
 });
+// Send user to payment.data.mono_url
+
+// Verify payment – checks payment status by reference (GET /v2/payments/verify/:reference).
+const status = await mono.payments.oneTime.verify("order-ref-001");
+
+// Fetch all payments – lists payment transactions with optional filters (GET /v2/payments/transactions).
+const all = await mono.payments.oneTime.fetchAll({ status: "successful" });
 ```
 
-Get an [identity](https://docs.mono.co/reference/identity) for an account:
-
-**Note:** Not all banks return identity information. [See Coverage](https://docs.mono.co/docs/bvn-coverage)
-```js
-monoClient.account.getIdentity({accountId: String}, (err, results) => {
-  console.log(`Your ${results.type} is ${results.amount}. You work at ${results.employer}`);
-});
-```
-
-Manual [data sync](https://docs.mono.co/reference/intro#manually-trigger) for an account:
-
-**Note:** This may require some users to re-authorize their bank account with Mono. [See Re-authorization](https://docs.mono.co/reference/intro#reauthorisation)
-```js
-monoClient.account.syncDataManually({accountId: String}, (err, results) => {
-  console.log(`Status: ${results.status}`);
-});
-```
-
-Get [re-auth code](https://docs.mono.co/reference/intro#reauth-code) for an account:
-
-**Note:** Please note that this Re-auth code/token expires in 10 minutes. You will need to pass the re-auth code to a Mono Connect Widget to complete verification.
-```js
-monoClient.account.reauthCode({accountId: String}, (err, results) => {
-  console.log(results.token);
-});
-```
-
-Unlink a bank account:
-
-It is strongly recommend to implement this feature to build trust with your users and allow them to have complete control of their data. [See Docs](https://docs.mono.co/reference/mono-unlink-account)
+### Payments – Recurring (mandates)
 
 ```js
-monoClient.account.unlinkAccount({accountId: String}, (err, results) => {
-  console.log(results.message);
+// Get banks – returns list of banks supported for mandates (GET /v3/banks/list).
+const banks = await mono.payments.recurring.getBanks();
+
+// Create mandate – creates a mandate (signed or e-mandate) for recurring debits (POST /v3/payments/mandates).
+const mandate = await mono.payments.recurring.createMandate({
+  customer: customerId,
+  mandate_type: "emandate",
+  debit_type: "variable",
+  amount: 500000,
+  reference: "mandate-ref-001",
+  account_number: "0123456789",
+  bank_code: "058",
+  description: "Subscription",
+  start_date: "2024-01-01",
+  end_date: "2024-12-31",
 });
+
+// Balance inquiry – checks mandate account balance or sufficient funds (GET /v3/payments/mandates/:id/balance-inquiry).
+const balance = await mono.payments.recurring.balanceInquiry(mandateId);
+
+// Debit account – debits the mandate account (POST /v3/payments/mandates/:id/debit).
+await mono.payments.recurring.debitAccount(mandateId, {
+  amount: 10000,
+  reference: "debit-001",
+  narration: "Monthly fee",
+});
+
+// Get all debits – returns all debits for a mandate (GET /v3/payments/mandates/:id/debits).
+const debits = await mono.payments.recurring.getAllDebits(mandateId);
 ```
 
-## Support
-If you're having general trouble with Mono Node.js or your Mono integration, please reach out to us at <hi@mono.co> or come chat with us on [Slack](https://join.slack.com/t/devwithmono/shared_invite/zt-gvkqczzk-Ldt4FQpHtOL7FFTqh4Ux6A). We're proud of our level of service, and we're more than happy to help you out with your integration to Mono.
+### Payments – Disburse
 
-## Contributing
-If you would like to contribute to the Mono Node.js Library, please make sure to read our [contributor guidelines](https://github.com/withmono/mono-node/tree/main/CONTRIBUTING.md).
+```js
+// Create source account – creates a funding source for disbursements (POST /v3/payments/disburse/source-accounts).
+await mono.payments.disburse.createSourceAccount({
+  app: appId,
+  account_number: "0123456789",
+  bank_code: "044",
+  email: "finance@company.com",
+});
 
+// Create instant disbursement – creates an instant disbursement batch with one or more recipients (POST /v3/payments/disburse/disbursements).
+const batch = await mono.payments.disburse.createInstantDisbursement({
+  reference: "batch-001",
+  source: "mandate",
+  account: sourceAccountId,
+  type: "instant",
+  total_amount: 1000000,
+  description: "Payroll",
+  distribution: [
+    { reference: "dist-1", recipient_email: "a@example.com", account: { account_number: "001", bank_code: "044" }, amount: 500000, narration: "Salary" },
+  ],
+});
+
+// Get all disbursements – returns a paginated list of disbursement batches (GET /v3/payments/disburse/disbursements).
+const list = await mono.payments.disburse.getAllDisbursements();
+
+// Get disbursement – returns a single disbursement by ID (GET /v3/payments/disburse/disbursements/:id).
+const one = await mono.payments.disburse.getDisbursement(disbursementId);
+```
+
+### Lookup
+
+```js
+// Bank listing (NIP) – returns all banks supported under NIBSS/NIP (GET /v3/lookup/banks).
+const banks = await mono.lookup.general.bankListing();
+
+// NIN lookup – verifies a national identification number (POST /v3/lookup/nin).
+const ninResult = await mono.lookup.general.nin({ nin: "12345678901" });
+
+// Address lookup – verifies address (POST /v3/lookup/address).
+const addressResult = await mono.lookup.general.address({ ... });
+
+// BVN initiate – starts a BVN consent flow (POST /v2/lookup/bvn/initiate).
+await mono.lookup.bvn.initiate({ bvn: "22123456789", scope: "identity" });
+
+// BVN verify OTP – verifies the BVN request via OTP (POST /v2/lookup/bvn/verify).
+await mono.lookup.bvn.verifyOtp({ method: "phone", phone_number: "08012345678" });
+
+// BVN fetch details – returns BVN information after OTP verification (POST /v2/lookup/bvn/details).
+const bvnDetails = await mono.lookup.bvn.fetchDetails({ otp: "123456" });
+
+// CAC business lookup – searches for a business by name or RC number (GET /v3/lookup/cac).
+const companies = await mono.lookup.cac.business({ search: "Acme", exact: false });
+
+// CAC directors – returns directors for a company (GET /v3/lookup/cac/company/:id/directors).
+const directors = await mono.lookup.cac.directors(companyId);
+
+// CAC profile – returns company profile by RC number (GET /v3/lookup/cac/profile/:rcnumber).
+const profile = await mono.lookup.cac.profile(rcNumber);
+```
+
+### Prove (KYC)
+
+```js
+// Initiate Prove – starts a Mono Prove KYC session; returns mono_url for the user (POST /v1/prove/initiate).
+const session = await mono.prove.initiate({
+  customer: { name: "Samuel", phone: "08012345678", email: "samuel@example.com", identity: { type: "bvn", number: "22123456789" } },
+  reference: "kyc-ref-001",
+  redirect_url: "https://yourapp.com/kyc-done",
+  kyc_level: "tier_1",
+  bank_accounts: false,
+});
+
+// Fetch customer details – returns shared KYC details for one customer by reference (GET /v1/prove/customers/:reference).
+const details = await mono.prove.fetchCustomerDetails("kyc-ref-001");
+
+// Fetch all details – returns shared details for all Prove customers (GET /v1/prove/customers).
+const all = await mono.prove.fetchAllDetails();
+
+// Blacklist customer – blacklists a customer from Mono Prove (POST /v1/prove/customers/blacklist).
+await mono.prove.blacklist({ reference: "kyc-ref-001", reason: "...", code: "101" });
+
+// Whitelist customer – removes a customer from the blacklist (POST /v1/prove/customers/whitelist).
+await mono.prove.whitelist({ reference: "kyc-ref-001" });
+
+// Revoke data access – revokes a customer's shared data (DELETE /v1/prove/customers/:reference).
+await mono.prove.revokeDataAccess("kyc-ref-001");
+```
+
+### Misc
+
+```js
+// Bank coverage – returns supported institutions and product scopes e.g. financial_data, Directpay (GET /v3/institutions).
+const institutions = await mono.misc.bankCoverage({ country: "ng", scope: "financial_data" });
+```
+
+---
+
+## Deprecated APIs
+
+The following are **not** exposed on the new `Mono` class:
+
+- **Re-auth Code** – previously used to re-authenticate an account via a Mono-generated code.
+- **Wallet balance** – previously used to check wallet balance.
+
+If you still need the legacy callback-based API (including deprecated endpoints), use the existing `mono-node` export:
+
+```js
+const client = require("mono-node");
+
+client.getAccountId(secretKey, { code }, (err, results) => { ... });
+client.getAccountInformation(secretKey, { accountId }, (err, results) => { ... });
+// etc.
+```
+
+New integrations should use the `Mono` class and the endpoints documented above.
+
+---
+
+## Currency
+
+Amounts in the API use the **smallest currency unit**:
+
+- **NGN** – kobo  
+- **GHC** – pesewa  
+- **KSH** / **ZAR** – cents  
+
+Example: NGN 200.00 = `20000` (kobo).
+
+---
+
+## Documentation
+
+- [Mono API Reference](https://docs.mono.co/api)
+- [Get API keys](https://app.mono.co/apps)
+- [Support](https://support.mono.co)
+
+---
 
 ## License
 
-[MIT](https://github.com/withmono/mono-node/blob/develop/LICENSE) for more information.
+MIT. See [LICENSE](https://github.com/withmono/mono-node/blob/main/LICENSE.md) for details.

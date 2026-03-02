@@ -6,11 +6,11 @@ class User extends BaseLib_1.BaseLib {
     constructor(axios) {
         super(axios);
         this.axios = axios;
-        this.path = '';
+        this.path = '/users';
     }
-    async walletBalance(callback) {
-        return this.sendRequest(this.axios.get('/users/stats/wallet'), callback).catch(err => {
-            // console.log(err);
+    async getWalletBalance(callback) {
+        return this.sendRequest(this.axios.get(`${this.path}/stats/wallet`), callback).catch(err => {
+            throw err;
         });
     }
 }

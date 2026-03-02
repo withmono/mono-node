@@ -4,3 +4,4 @@ export declare class BaseLib {
     constructor(axios: AxiosInstance);
     protected sendRequest(axiosRequest: any, callback?: any): Promise<any>;
 }
+//# sourceMappingURL=BaseLib.d.ts.map
